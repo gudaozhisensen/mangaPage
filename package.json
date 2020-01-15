@@ -1,0 +1,20 @@
+{
+  "name": "spider",
+  "version": "0.1.0",
+  "description": "1kkk.com 网络漫画爬虫",
+  "main": "yakuza_spider.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "axios": "^0.19.1",
+    "cheerio": "^1.0.0-rc.3",
+    "puppeteer": "^2.0.0"
+  },
+  "keywords": [
+    "spider",
+    "manhua"
+  ],
+  "author": "LX",
+  "license": "ISC"
+}

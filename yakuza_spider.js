@@ -38,61 +38,65 @@ async function getPageData() {
    let pageHtml =  await axios.get(httpUrl);
    $ = cheerio.load(pageHtml.data,{decodeEntities: false});
    let browser = await puppeteer.launch(debugOptions);
-   let tempc = $('a.block').each(async(item,i)=>{
-    //    let chapterList = await getChaptersList(item);
-    // test 
-    
-
+   /*
+   *tab的class分类为.detail-list-select-1(连载)，.detail-list-select-2(卷)，.detail-list-select-3(番外)
+   *所以传入item来识别为哪种分类
+   */
+   $('a.block').each(async(item,i)=>{
+   let chapterList = await getChaptersList(item);
         console.log(i.children[0].data);
-        // chapterList = JSON.stringify(chapterList, null, 2);
-        // console.log(chapterList);
+        chapterList = JSON.stringify(chapterList, null, 2);
+        console.log(chapterList);
    });
-  await getMhImages('http://www.1kkk.com/ch16-707348/#ipg3');
+//   await getMhImages('http://www.1kkk.com/ch16-707348/#ipg3');
+
+//获取所有的连载章节
 async function getChaptersList(index){
     let pageHtml = await axios.get(httpUrl);
     $ = cheerio.load(pageHtml.data,{decodeEntities: false});
-    
     let arrUrl = [];
     //拿到连载和番外等列表的长度
     //根据列表分类循环拿到分类下的li数据 
-    let num =1
-    let length = $('.detail-list-select').eq(index).find('li a').length;
+    let num = 1;
+    let tabLength = $('.detail-list-select').eq(index).find('li a').length;
     let page = await browser.newPage();      
     await page.goto(httpUrl);
+        let div =  $("[id^='detail-list-select-']");
+       
+    // 接收获取到的分类
     $('.detail-list-select').eq(index).find('li a').each(async(item,i)=> {
-        
         let chapterUrl = $(i).attr('href');
         chapterUrl = urllib.resolve(hostUrl,chapterUrl);
-          
         //获取text文本数据但不包括子元素的文本
-        //章节名
+        //获取列表里显示的章节名
         let chapterNumber = $(i).children()[0].prev.data;
-        //获取总页数
+        //获取列表里显示的每章总页数
         let totalPage = $(i).find('span').text();
        
-        
-       
         // 获取每章的漫画页
-        // let mhImages = await getMhImages(chapterUrl);
+        // let Images = await getMhImages(chapterUrl);
+        let mhImages = [];
+
         // mhImages = JSON.stringify(mhImages, null, 2);
-        let obj ={
+        let obj = {
             url: chapterUrl,
             chapter:chapterNumber,
             pages:totalPage,
             // images:mhImages
         };
-        
-        chapterList.push(obj);
         num++;
-        
-        
-        if(num==length){
+        chapterList.push(obj);
+
+        if(num == tabLength+1){
             page.close();
             return chapterList;
+            // 返回给上一层
         }
-        
+       
     })
-   
+    let chapters = chapterList;
+    chapterList = [];
+    return chapters;
   }
 
 //获得每章节里的图片
@@ -113,16 +117,16 @@ async function getMhImages(url){
                 interceptedRequest.abort();
             }else if(urlObj.pathname.indexOf("chapterfun")!=-1){
                 reg.push(urlObj.href);
-                // console.log(reg);
                 interceptedRequest.continue();
             }else{
                 interceptedRequest.continue();
             }
-            
-            
         });
     await page.goto(url);
-    // chapterfun.ashx地址,所有图片的地址
+    /*
+    *图片的地址数据放在chapterfun.ashx里
+    *chapterfun.ashx要先运行这串代码才能获得图片地址路径
+    */ 
     await page.goto(reg[0]);
     
     let ImgPagesJS = await page.$eval('pre',(element)=>{
@@ -132,8 +136,7 @@ async function getMhImages(url){
         let pageDetalList = [];
         pageDetalList.push(ImgPagesJS);
         //拿到的数组长度不是2，分开2部分push，push不会去重但是，得到的
-        // console.log(pageDetalList[0]);
-        console.log("images:",ImgPagesJS);
+        // console.log("images:",ImgPagesJS);
        
         ImgPagesJS.forEach((item,index) => {
             let count = 1;
