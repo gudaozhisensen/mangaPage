@@ -22,8 +22,8 @@ let options={headless:true};
 
 
 let count = 1;
-let httpUrl = "http://www.1kkk.com/manhua40946/";
-let hostUrl = "http://www.1kkk.com/"
+let httpUrl = "http://www.mangabz.com/356bz/";
+let hostUrl = "http://www.mangabz.com/manga-list-31-0-10/"
 let chapterList = [];
 //将延迟函数封装成promise对象
 function lcWait(milliSecondes){
@@ -42,13 +42,14 @@ async function getPageData() {
    *tab的class分类为.detail-list-select-1(连载)，.detail-list-select-2(卷)，.detail-list-select-3(番外)
    *所以传入item来识别为哪种分类
    */
-   $('a.block').each(async(item,i)=>{
-   let chapterList = await getChaptersList(item);
+   $('div.detail-list-form-con').each(async(item,i)=>{
+    //    console.log(item);
+        let chapterList = await getChaptersList(item);
         console.log(i.children[0].data);
         chapterList = JSON.stringify(chapterList, null, 2);
         console.log(chapterList);
    });
-//   await getMhImages('http://www.1kkk.com/ch16-707348/#ipg3');
+//   await getMhImages('http://www.mangabz.com/m2232/#ipg2');
 
 //获取所有的连载章节
 async function getChaptersList(index){
@@ -58,13 +59,13 @@ async function getChaptersList(index){
     //拿到连载和番外等列表的长度
     //根据列表分类循环拿到分类下的li数据 
     let num = 1;
-    let tabLength = $('.detail-list-select').eq(index).find('li a').length;
+    let tabLength = $('div.detail-list-form-con a').length;
     let page = await browser.newPage();      
     await page.goto(httpUrl);
         let div =  $("[id^='detail-list-select-']");
        
     // 接收获取到的分类
-    $('.detail-list-select').eq(index).find('li a').each(async(item,i)=> {
+    $('div.detail-list-form-con a').each(async(item,i)=> {
         let chapterUrl = $(i).attr('href');
         chapterUrl = urllib.resolve(hostUrl,chapterUrl);
         //获取text文本数据但不包括子元素的文本
@@ -79,9 +80,9 @@ async function getChaptersList(index){
 
         // mhImages = JSON.stringify(mhImages, null, 2);
         let obj = {
-            url: chapterUrl,
-            chapter:chapterNumber,
-            pages:totalPage,
+            url: chapterUrl.trim(),
+            chapter:chapterNumber.trim(),
+            pages:totalPage.trim(),
             // images:mhImages
         };
         num++;
