@@ -44,12 +44,12 @@ async function getPageData() {
    */
    $('div.detail-list-form-con').each(async(item,i)=>{
     //    console.log(item);
-        let chapterList = await getChaptersList(item);
-        console.log(i.children[0].data);
-        chapterList = JSON.stringify(chapterList, null, 2);
-        console.log(chapterList);
+        // let chapterList = await getChaptersList(item);
+        // console.log(i.children[0].data);
+        // chapterList = JSON.stringify(chapterList, null, 2);
+        // console.log(chapterList);
    });
-//   await getMhImages('http://www.mangabz.com/m2232/#ipg2');
+  await getMhImages('http://www.mangabz.com/m92081/#ipg2');
 
 //获取所有的连载章节
 async function getChaptersList(index){
@@ -116,7 +116,7 @@ async function getMhImages(url){
             if (urlObj.pathname.indexOf("galileo")!=-1){
                 //如果是广告请求，那么就放弃当次请求
                 interceptedRequest.abort();
-            }else if(urlObj.pathname.indexOf("chapterfun")!=-1){
+            }else if(urlObj.pathname.indexOf("chapterimage")!=-1){
                 reg.push(urlObj.href);
                 interceptedRequest.continue();
             }else{
@@ -133,29 +133,27 @@ async function getMhImages(url){
     let ImgPagesJS = await page.$eval('pre',(element)=>{
         let text = element.innerText;
         return eval(text);
-    })
+    }); 
         let pageDetalList = [];
         pageDetalList.push(ImgPagesJS);
         //拿到的数组长度不是2，分开2部分push，push不会去重但是，得到的
         // console.log("images:",ImgPagesJS);
        
         ImgPagesJS.forEach((item,index) => {
-            let count = 1;
-            let reg = /(\d*)?_(\d*)?.jpg/;
+            let reg = /(\d*)?_(\d*)?/;
             let fileName = reg.exec(item);
-              count++;
+            // console.log(fileName);
               downLoad(item,fileName);
-              page.close();
-              if(count == ImgPagesJS.length){
-                count == 0;
+              if(index+1 == ImgPagesJS.length){
                 console.log("--------第章下载链接收集完成！-----------");
+                page.close();
             }
         });
       
     // let arr = pageDetalList[0].concat(pageDetalList[1]);
    
    
-    return pageDetalList;
+    return ImgPagesJS;
 //     let chapterImgList = [];
 //      // 每一章的页码
 //    let imgLength = $('.chapterpager').eq(0).find('a').last().text();
@@ -185,9 +183,10 @@ async function getMhImages(url){
 
 async function downLoad(chapterImgUrl,imagesName){
     axios.get(chapterImgUrl, {responseType:'stream'}).then(function(res){
-        let ws = fs.createWriteStream('./comics/'+imagesName+".jpg");
+        let ws = fs.createWriteStream('./comics/'+imagesName[0]+".jpg");
         res.data.pipe(ws);      
     });
+    console.log(imagesName[0]+"download ok!");
 }
 
 }
